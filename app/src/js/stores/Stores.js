@@ -16,6 +16,10 @@ class Stores extends EventEmitter {
       return response.json();
     }).then((json) => {
       this.user = json[0];
+      this.socket = io(`http://localhost:3000/${this.user.id}`);
+      this.socket.on('newMsg', (data) => {
+        this.emit("newMsg");
+      })
       this.emit("loginSuccess");
     })
   }
@@ -30,11 +34,36 @@ class Stores extends EventEmitter {
   }
 
   getMessages(id) {
-    fetch(`${apiRoute}messages/${id}`).then((response) => {
+    fetch(`${apiRoute}messages/${id}/${this.user.id}`).then((response) => {
       return response.json();
     }).then((json) => {
-      this.messages = json;
+      this.messages = json[0];
       this.emit("getMessagesSuccess");
+    })
+  }
+
+  getContacts() {
+    fetch(`${apiRoute}users`).then((response) => {
+      return response.json();
+    }).then((json) => {
+      this.contacts = json;
+      this.emit("getContactsSuccess");
+    })
+  }
+
+  addConversation(id) {
+    fetch(`${apiRoute}conversations/${this.user.id}`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({user: id})
+    }).then((response) => {
+      return response.json();
+    }).then((json) => {
+      this.newConversationId = json.id;
+      this.emit("addConversationSuccess");
     })
   }
 
@@ -47,10 +76,7 @@ class Stores extends EventEmitter {
       },
       body: JSON.stringify(msg)
     }).then((response) => {
-      return response.json();
-    }).then((json) => {
-      this.posted = json;
-      console.log(json);
+      this.postedMsg = msg;
       this.emit("postMessageSuccess");
     })
   }
@@ -63,6 +89,14 @@ class Stores extends EventEmitter {
       }
       case "GET_CONVERSATIONS": {
         this.getConversations(action.userId);
+        break;
+      }
+      case "GET_CONTACTS": {
+        this.getContacts();
+        break;
+      }
+      case "ADD_CONVERSATION": {
+        this.addConversation(action.userId);
         break;
       }
       case "GET_MESSAGES": {

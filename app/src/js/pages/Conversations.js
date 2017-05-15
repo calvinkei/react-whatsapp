@@ -7,6 +7,8 @@ import Badge from 'material-ui/Badge';
 import TextField from 'material-ui/TextField';
 import RightIcon from 'material-ui/svg-icons/hardware/keyboard-arrow-right';
 import {lightBlack} from 'material-ui/styles/colors';
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import ContentAdd from 'material-ui/svg-icons/content/add';
 
 import Stores from '../stores/Stores';
 import * as Actions from '../actions/Actions';
@@ -35,7 +37,9 @@ export default class Conversations extends React.Component {
   timeTransform(time) {
     const currentTime = new Date();
     const givenTime = new Date(time);
-    if (currentTime.getTime() - givenTime.getTime() < 1000*3600*24){
+    if (!time) {
+      return '';
+    }else if (currentTime.getTime() - givenTime.getTime() < 1000*3600*24) {
       return `${givenTime.getHours()}:${givenTime.getMinutes()}`;
     }else{
       return `${givenTime.getDate()}/${givenTime.getMonth() + 1}/${givenTime.getFullYear()}`
@@ -73,6 +77,9 @@ export default class Conversations extends React.Component {
         <TextField style={{marginBottom: -8}} inputStyle={{padding: '0 10px'}} hintStyle={{padding: '0 10px'}} fullWidth={true} hintText='Search' onChange={(e) => {this.setState({searchString: e.target.value})}} />
         {listItems}
         <Divider />
+        <FloatingActionButton onClick={() => {this.props.history.push(`/chat/contacts`);}} style={{position: 'fixed', bottom: 60, right: 40}} secondary={true}>
+          <ContentAdd />
+        </FloatingActionButton>
       </List>
     );
   }

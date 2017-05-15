@@ -14,9 +14,16 @@ export function getConversations(userId) {
   });
 }
 
-export function getContact() {
+export function addConversation(userId) {
   dispatcher.dispatch({
-    type: "GET_CONTACT"
+    type: "ADD_CONVERSATION",
+    userId,
+  });
+}
+
+export function getContacts() {
+  dispatcher.dispatch({
+    type: "GET_CONTACTS"
   });
 }
 
