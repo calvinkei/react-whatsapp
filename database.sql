@@ -28,9 +28,9 @@ CREATE TABLE `conversations` (
   `user_b` int(11) NOT NULL,
   `user_a_unread` int(11) NOT NULL DEFAULT '0',
   `user_b_unread` int(11) NOT NULL DEFAULT '0',
-  `last_msg` int(11) NOT NULL,
+  `last_msg` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,7 +39,7 @@ CREATE TABLE `conversations` (
 
 LOCK TABLES `conversations` WRITE;
 /*!40000 ALTER TABLE `conversations` DISABLE KEYS */;
-INSERT INTO `conversations` VALUES (1,1,2,1,0,1),(2,3,1,2,3,2),(3,4,6,0,2,3);
+INSERT INTO `conversations` VALUES (23,1,3,0,1,227),(24,1,2,0,1,228);
 /*!40000 ALTER TABLE `conversations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -56,9 +56,9 @@ CREATE TABLE `messages` (
   `sender` int(11) NOT NULL,
   `content` longtext NOT NULL,
   `send_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` int(11) DEFAULT '0',
+  `status` int(11) DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=229 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +67,7 @@ CREATE TABLE `messages` (
 
 LOCK TABLES `messages` WRITE;
 /*!40000 ALTER TABLE `messages` DISABLE KEYS */;
-INSERT INTO `messages` VALUES (1,1,1,'hi','2017-05-10 17:30:51',0),(2,2,3,'this is a message','2017-05-10 17:30:51',0),(3,3,6,'another message','2017-05-10 17:30:51',0),(4,2,1,'hi','2017-05-12 01:18:47',0),(5,2,1,'hi','2017-05-12 01:18:57',0),(6,2,1,'hi','2017-05-12 01:19:17',0),(7,2,3,'Hey what\'s up','2017-05-12 01:29:22',0),(8,1,1,'hey vincent','2017-05-12 01:32:40',0),(9,1,2,'yes','2017-05-12 01:34:17',0),(10,1,2,'what\'s up','2017-05-12 01:35:05',0),(21,2,1,'hi','2017-05-12 01:56:37',0),(22,2,3,'hihi','2017-05-12 01:56:54',0);
+INSERT INTO `messages` VALUES (198,23,1,'hihihi','2017-05-17 21:15:07',2),(199,23,1,'hihi','2017-05-17 21:15:57',2),(200,23,3,'hihihi','2017-05-17 21:16:02',2),(201,23,3,'hihihihi','2017-05-17 21:16:12',2),(202,23,1,'rthrt','2017-05-17 21:18:35',2),(203,23,1,'qertqt','2017-05-17 21:18:37',2),(204,23,1,'sdgherth','2017-05-17 21:18:38',2),(205,23,1,'q4t3t4','2017-05-17 21:18:39',2),(206,23,1,'asgwer','2017-05-17 21:18:40',2),(207,23,1,'sdgwrt','2017-05-17 21:18:42',2),(208,23,1,'qwetrqt','2017-05-17 21:18:44',2),(209,23,3,'wrtwt','2017-05-17 21:21:45',2),(210,23,3,'qerq','2017-05-17 21:21:47',2),(211,23,3,'wrgwrt','2017-05-17 21:21:59',2),(212,23,3,'rtwtg','2017-05-17 21:22:13',2),(213,23,3,'qwerqwe','2017-05-17 21:22:15',2),(214,23,3,'dfghet','2017-05-17 21:22:16',2),(215,23,3,'qwerqe','2017-05-17 21:22:17',2),(216,23,1,'wrthet','2017-05-17 21:22:19',2),(217,23,1,'aeregqer','2017-05-17 21:22:21',2),(218,23,1,'eth','2017-05-17 21:22:22',2),(219,23,1,'werq','2017-05-17 21:22:23',2),(220,23,1,'dyhert','2017-05-17 21:22:25',2),(221,23,3,'werg','2017-05-17 21:22:27',2),(222,23,3,'wefq','2017-05-17 21:22:29',2),(223,23,3,'asdgf','2017-05-17 21:22:30',2),(224,23,1,'wrtg','2017-05-17 21:22:33',2),(225,23,1,'qer','2017-05-17 21:22:35',2),(226,23,1,'avsdv','2017-05-17 21:22:38',2),(227,23,1,'wretwrt','2017-05-17 21:51:59',1),(228,24,1,'qwerg','2017-05-17 21:52:35',1);
 /*!40000 ALTER TABLE `messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -106,4 +106,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-05-12  2:03:28
+-- Dump completed on 2017-05-17 21:53:37

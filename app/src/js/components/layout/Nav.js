@@ -10,7 +10,7 @@ export default class Nav extends React.Component {
 
   constructor() {
     super();
-    this.state = {navTitle: 'React Whatsapp', unread: 0, willShowUnread: true};
+    this.state = {navTitle: 'React Whatsapp', unread: 0, willShowUnread: false};
     this.changeNavTitle = this.changeNavTitle.bind(this);
     this.updateUnread = this.updateUnread.bind(this);
     this.willShowUnread = this.willShowUnread.bind(this);
@@ -37,7 +37,9 @@ export default class Nav extends React.Component {
   }
 
   willShowUnread() {
-    this.setState({willShowUnread: Stores.willShowUnread});
+    window.setTimeout(() => {
+      this.setState({willShowUnread: Stores.willShowUnread});
+    }, 100);
   }
 
   changeNavTitle() {

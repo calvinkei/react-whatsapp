@@ -7,6 +7,17 @@ class Stores extends EventEmitter {
   apiRoute = 'http://localhost:3000/api/';
   socketIoRoute = 'http://localhost:3000/';
 
+  constructor() {
+    super();
+    if(window.localStorage['user'] && !this.user){
+      try{
+        this.user = JSON.parse(window.localStorage['user']);
+      }catch(e) {
+        window.localStorage.removeItem('user');
+      }
+    }
+  }
+
   changeNavTitle(title) {
     this.navTitle = title;
     this.emit("navTitleChanged");
@@ -16,6 +27,7 @@ class Stores extends EventEmitter {
     fetch(`${this.apiRoute}user/${username}`).then((response) => {
       return response.json();
     }).then((json) => {
+      window.localStorage['user'] = JSON.stringify(json[0]);
       this.user = json[0];
       this.socket = io(`${this.socketIoRoute}${json[0].id}`);
       this.socket.on('newMsg', (data) => {
@@ -60,12 +72,15 @@ class Stores extends EventEmitter {
       return response.json();
     }).then((json) => {
       this.messages = json;
-      for(let i = 0; i < this.conversations.length; i++){
-        if (this.conversations[i].id == id){
-          if (this.conversations[i].unread > 0){
-            this.unreadConversations--;
+      if(this.conversations){
+        for(let i = 0; i < this.conversations.length; i++){
+          if (this.conversations[i].id == id){
+            if (this.conversations[i].unread > 0){
+              this.unreadConversations--;
+              this.conversations[i].unread = 0;
+            }
+            break;
           }
-          break;
         }
       }
       this.emit("getMessagesSuccess");

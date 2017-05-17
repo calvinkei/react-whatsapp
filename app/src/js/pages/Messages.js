@@ -13,18 +13,27 @@ export default class Messages extends React.Component {
 
   constructor() {
     super();
-    this.state = {messages: [], msg: ''};
+    this.state = {messages: [], msg: '', isScrollUp: false, scrollHeight: 0};
     this.setMessages = this.setMessages.bind(this);
     this.postSuccess = this.postSuccess.bind(this);
     this.updateMsg = this.updateMsg.bind(this);
     this.msgRead = this.msgRead.bind(this);
+    this.handleScroll = this.handleScroll.bind(this);
   }
 
   setMessages() {
+    const prevScrollHeight = document.body.scrollHeight;
     const messages = [...this.state.messages.slice(), ...Stores.messages];
     messages.sort((a, b) => {return new Date(a.send_time) - new Date(b.send_time)});
     this.setState({messages});
-    window.setTimeout(() => {window.scrollTo(0,document.body.scrollHeight)}, 200);
+    if(!this.state.isScrollUp){
+      window.scrollTo(0, document.body.scrollHeight);
+    }else if(Stores.messages.length > 0){
+      window.scrollTo(0, document.body.scrollHeight - this.state.scrollHeight);
+      this.setState({isScrollUp: false});
+    }else{
+      this.setState({isScrollUp: false});
+    }
   }
 
   postSuccess() {
@@ -50,8 +59,14 @@ export default class Messages extends React.Component {
           }
         }
       }
-      messages.sort((a, b) => {return new Date(a.send_time) - new Date(b.send_time)});
       this.setState({messages});
+    }
+  }
+
+  handleScroll() {
+    if(document.body.scrollHeight > window.innerHeight && document.body.scrollTop == 0){
+      this.setState({isScrollUp: true, scrollHeight: document.body.scrollHeight});
+      Actions.getMessages(this.props.params.id, this.state.messages.length, 20);
     }
   }
 
@@ -62,6 +77,7 @@ export default class Messages extends React.Component {
     Stores.on('postMessageSuccess', this.postSuccess);
     Stores.on('newMsg', this.updateMsg);
     Stores.on('msgRead', this.msgRead);
+    document.addEventListener('scroll', this.handleScroll);
   }
 
   componentWillUnmount() {
@@ -70,6 +86,7 @@ export default class Messages extends React.Component {
     Stores.removeListener('postMessageSuccess', this.postSuccess);
     Stores.removeListener('newMsg', this.updateMsg);
     Stores.removeListener('msgRead', this.msgRead);
+    document.removeEventListener('scroll', this.handleScroll);
   }
 
   timeTransform(time) {
@@ -91,7 +108,6 @@ export default class Messages extends React.Component {
     messages.push(msg);
     Actions.postMessage(this.props.params.id, msg);
     messages[messages.indexOf(msg)].status = 0;
-    messages.sort((a, b) => {return new Date(a.send_time) - new Date(b.send_time)});
     document.getElementById('msgField').value = '';
     this.setState({messages, msg: ''});
     window.setTimeout(() => {window.scrollTo(0,document.body.scrollHeight)}, 200);
