@@ -28,21 +28,25 @@ export default class Conversations extends React.Component {
 
   componentWillMount() {
     Stores.on('getConversationsSuccess', this.setConversations);
+    Stores.on('newMsg', this.setConversations);
+    Actions.willShowUnread(false);
   }
 
   componentWillUnmount() {
     Stores.removeListener('getConversationsSuccess', this.setConversations);
+    Stores.removeListener('newMsg', this.setConversations);
+    Actions.willShowUnread(true);
   }
 
   timeTransform(time) {
     const currentTime = new Date();
     const givenTime = new Date(time);
-    if (!time) {
+    if (!time){
       return '';
-    }else if (currentTime.getTime() - givenTime.getTime() < 1000*3600*24) {
-      return `${givenTime.getHours()}:${givenTime.getMinutes()}`;
+    }else if (currentTime.getTime() - givenTime.getTime() < 1000*3600*24){
+      return `${("0" +givenTime.getHours()).slice(-2)}:${("0" +givenTime.getMinutes()).slice(-2)}`;
     }else{
-      return `${givenTime.getDate()}/${givenTime.getMonth() + 1}/${givenTime.getFullYear()}`
+      return `${("0" +givenTime.getHours()).slice(-2)}:${("0" +givenTime.getMinutes()).slice(-2)} ${givenTime.getDate()}/${givenTime.getMonth() + 1}/${givenTime.getFullYear()}`
     }
   }
 

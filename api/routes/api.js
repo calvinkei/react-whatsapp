@@ -69,18 +69,22 @@ router.post('/conversations/:user', function(req, res, next) {
 
 });
 
-router.get('/messages/:conversation/:user', function(req, res, next) {
-  pool.query('SELECT sender, content, send_time, status FROM messages WHERE conversation = ' + pool.escape(req.params.conversation) + ' ORDER BY send_time DESC' +
+router.get('/messages/:conversation/:user/:from/:noOfMsg', function(req, res, next) {
+  pool.query('SELECT id, sender, content, send_time, status FROM messages WHERE conversation = ' + pool.escape(req.params.conversation) +
+  ' ORDER BY send_time DESC LIMIT ' + pool.escape(Number(req.params.from)) + ',' + pool.escape(Number(req.params.noOfMsg)) +
   // Update unread number
+  '; SELECT CASE user_a WHEN ' + pool.escape(req.params.user) + ' THEN user_b ELSE user_a END AS user FROM conversations WHERE id = ' + pool.escape(req.params.conversation) +
   '; UPDATE conversations SET user_a_unread = CASE user_a WHEN ' + pool.escape(req.params.user) +
   ' THEN 0 ELSE user_a_unread END, user_b_unread = CASE user_b WHEN ' + pool.escape(req.params.user) +
   ' THEN 0 ELSE user_b_unread END WHERE id = ' + pool.escape(req.params.conversation) +
   // Update message status (blue tick)
-  '; UPDATE messages SET status = 2 WHERE conversation = ' + pool.escape(req.params.conversation) + ' AND sender != ' + pool.escape(req.params.user), function (error, results, fields){
+  '; SELECT id FROM messages WHERE conversation = ' + pool.escape(req.params.conversation) + ' AND status != 2 AND sender != ' + pool.escape(req.params.user) +
+  '; UPDATE messages SET status = 2 WHERE conversation = ' + pool.escape(req.params.conversation) + ' AND status != 2 AND sender != ' + pool.escape(req.params.user), function (error, results, fields){
     if(error){
       res.send(error);
     }else{
-      res.send(results);
+      res.io.of('/' + results[1][0].user).emit('read', {conversation: req.params.conversation, messages: results[3]});
+      res.send(results[0]);
     }
   })
 });
@@ -91,16 +95,17 @@ router.post('/messages/:conversation', function(req, res, next) {
   pool.escape(req.params.conversation) + ',' +
   pool.escape(req.body.sender) + ',' +
   pool.escape(req.body.content) + ',' +
-  pool.escape(req.body.status) + '); UPDATE conversations SET last_msg = LAST_INSERT_ID(), user_a_unread = CASE user_a WHEN ' + pool.escape(req.body.sender) +
+  pool.escape(req.body.status) + '); SELECT * FROM messages WHERE id = LAST_INSERT_ID(); UPDATE conversations SET last_msg = LAST_INSERT_ID(), user_a_unread = CASE user_a WHEN ' + pool.escape(req.body.sender) +
   ' THEN user_a_unread ELSE user_a_unread + 1 END, user_b_unread = CASE user_a WHEN ' + pool.escape(req.body.sender) +
   ' THEN user_b_unread + 1 ELSE user_b_unread END WHERE id = ' + pool.escape(req.params.conversation), function (error, results, fields){
     if(error){
       res.send(error);
     }else{
-      res.io.of('/' + results[0][0].user).emit('newMsg', {msg: req.body});
-      res.send();
+      res.io.of('/' + results[0][0].user).emit('newMsg', results[2][0]);
+      res.send({id: results[2][0].id});
     }
   })
 });
+
 
 module.exports = router;

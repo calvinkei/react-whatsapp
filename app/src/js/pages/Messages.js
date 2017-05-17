@@ -16,31 +16,60 @@ export default class Messages extends React.Component {
     this.state = {messages: [], msg: ''};
     this.setMessages = this.setMessages.bind(this);
     this.postSuccess = this.postSuccess.bind(this);
+    this.updateMsg = this.updateMsg.bind(this);
+    this.msgRead = this.msgRead.bind(this);
   }
 
   setMessages() {
-    this.setState({messages: Stores.messages ? Stores.messages : []});
+    const messages = [...this.state.messages.slice(), ...Stores.messages];
+    messages.sort((a, b) => {return new Date(a.send_time) - new Date(b.send_time)});
+    this.setState({messages});
     window.setTimeout(() => {window.scrollTo(0,document.body.scrollHeight)}, 200);
   }
 
   postSuccess() {
     const messages = this.state.messages.slice();
     messages[messages.indexOf(Stores.postedMsg)].status = 1;
-    console.log(Stores.postedMsg, messages, messages.indexOf(Stores.postedMsg));
+    messages[messages.indexOf(Stores.postedMsg)].id = Stores.postedMsgId;
     this.setState({messages});
   }
 
+  updateMsg() {
+    Actions.getMessages(this.props.params.id, 0, 1);
+  }
+
+  msgRead() {
+    if(this.props.params.id == Stores.readMessages.conversation){
+      const messages = this.state.messages.slice();
+      for(let i = messages.length - 1; i >= 0; i--){
+        if (Stores.readMessages.messages.map((e) => e.id).indexOf(messages[i].id) >= 0){
+          messages[i].status = 2;
+          Stores.readMessages.messages.splice(Stores.readMessages.messages.indexOf(messages[i].id), 1);
+          if (Stores.readMessages.messages.length <= 0){
+            break;
+          }
+        }
+      }
+      messages.sort((a, b) => {return new Date(a.send_time) - new Date(b.send_time)});
+      this.setState({messages});
+    }
+  }
+
   componentWillMount() {
-    Actions.getMessages(this.props.params.id);
+    Actions.getMessages(this.props.params.id, 0, 20);
     Stores.changeNavTitle(Stores.messageUser);
     Stores.on('getMessagesSuccess', this.setMessages);
     Stores.on('postMessageSuccess', this.postSuccess);
+    Stores.on('newMsg', this.updateMsg);
+    Stores.on('msgRead', this.msgRead);
   }
 
   componentWillUnmount() {
     Stores.changeNavTitle("React Whatsapp");
     Stores.removeListener('getMessagesSuccess', this.setMessages);
     Stores.removeListener('postMessageSuccess', this.postSuccess);
+    Stores.removeListener('newMsg', this.updateMsg);
+    Stores.removeListener('msgRead', this.msgRead);
   }
 
   timeTransform(time) {
@@ -62,6 +91,7 @@ export default class Messages extends React.Component {
     messages.push(msg);
     Actions.postMessage(this.props.params.id, msg);
     messages[messages.indexOf(msg)].status = 0;
+    messages.sort((a, b) => {return new Date(a.send_time) - new Date(b.send_time)});
     document.getElementById('msgField').value = '';
     this.setState({messages, msg: ''});
     window.setTimeout(() => {window.scrollTo(0,document.body.scrollHeight)}, 200);
@@ -76,7 +106,7 @@ export default class Messages extends React.Component {
       textAlign: "left"
     }
 
-    const cards = this.state.messages.sort((a, b) => {return new Date(a.send_time) - new Date(b.send_time)}).map((msg, key) => (
+    const cards = this.state.messages.map((msg, key) => (
       <div style={{textAlign: (msg.sender == Stores.user.id ? "right" : "left")}} key={key}>
         <Card style={cardStyle}>
           <CardText style={{padding: "8px 16px 0 16px"}}>

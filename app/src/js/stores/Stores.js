@@ -2,9 +2,10 @@ import { EventEmitter } from "events";
 
 import dispatcher from "../dispatcher";
 
-const apiRoute = 'http://localhost:3000/api/';
-
 class Stores extends EventEmitter {
+
+  apiRoute = 'http://localhost:3000/api/';
+  socketIoRoute = 'http://localhost:3000/';
 
   changeNavTitle(title) {
     this.navTitle = title;
@@ -12,38 +13,67 @@ class Stores extends EventEmitter {
   }
 
   login(username) {
-    fetch(`${apiRoute}user/${username}`).then((response) => {
+    fetch(`${this.apiRoute}user/${username}`).then((response) => {
       return response.json();
     }).then((json) => {
       this.user = json[0];
-      this.socket = io(`http://localhost:3000/${this.user.id}`);
+      this.socket = io(`${this.socketIoRoute}${json[0].id}`);
       this.socket.on('newMsg', (data) => {
+        this.newMsg = data;
+        const conversations = this.conversations.slice();
+        for (let i = 0; i < conversations.length; i++){
+          if (conversations[i].id == data.conversation){
+            conversations[i].unread++;
+            if (conversations[i].unread == 1){
+              this.unreadConversations++;
+            }
+            conversations[i].send_time = data.send_time;
+            conversations[i].content = data.content;
+          }
+        }
+        this.conversations = conversations.sort((a, b) => {return new Date(b.send_time) - new Date(a.send_time)});
         this.emit("newMsg");
-      })
+      });
+      this.socket.on('read', (data) => {
+        this.readMessages = data;
+        this.emit("msgRead");
+      });
       this.emit("loginSuccess");
     })
   }
 
   getConversations(userId) {
-    fetch(`${apiRoute}conversations/${userId}`).then((response) => {
+    fetch(`${this.apiRoute}conversations/${userId}`).then((response) => {
       return response.json();
     }).then((json) => {
       this.conversations = json;
+      this.unreadConversations = 0;
+      for(let i = 0; i < this.conversations.length; i++){
+        this.unreadConversations = this.unreadConversations + (this.conversations[i].unread > 0 ? 1 : 0);
+      }
       this.emit("getConversationsSuccess");
     })
   }
 
-  getMessages(id) {
-    fetch(`${apiRoute}messages/${id}/${this.user.id}`).then((response) => {
+  getMessages(id, from, noOfMsg) {
+    fetch(`${this.apiRoute}messages/${id}/${this.user.id}/${from}/${noOfMsg}`).then((response) => {
       return response.json();
     }).then((json) => {
-      this.messages = json[0];
+      this.messages = json;
+      for(let i = 0; i < this.conversations.length; i++){
+        if (this.conversations[i].id == id){
+          if (this.conversations[i].unread > 0){
+            this.unreadConversations--;
+          }
+          break;
+        }
+      }
       this.emit("getMessagesSuccess");
     })
   }
 
   getContacts() {
-    fetch(`${apiRoute}users`).then((response) => {
+    fetch(`${this.apiRoute}users`).then((response) => {
       return response.json();
     }).then((json) => {
       this.contacts = json;
@@ -52,7 +82,7 @@ class Stores extends EventEmitter {
   }
 
   addConversation(id) {
-    fetch(`${apiRoute}conversations/${this.user.id}`, {
+    fetch(`${this.apiRoute}conversations/${this.user.id}`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -68,7 +98,7 @@ class Stores extends EventEmitter {
   }
 
   postMessage(id, msg) {
-    fetch(`${apiRoute}messages/${id}`, {
+    fetch(`${this.apiRoute}messages/${id}`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -76,7 +106,11 @@ class Stores extends EventEmitter {
       },
       body: JSON.stringify(msg)
     }).then((response) => {
+      return response.json();
+    }).then((json) => {
       this.postedMsg = msg;
+      this.postedMsgId = json.id;
+      console.log(json);
       this.emit("postMessageSuccess");
     })
   }
@@ -100,11 +134,16 @@ class Stores extends EventEmitter {
         break;
       }
       case "GET_MESSAGES": {
-        this.getMessages(action.id);
+        this.getMessages(action.id, action.from, action.noOfMsg);
         break;
       }
       case "POST_MESSAGE": {
         this.postMessage(action.id, action.msg);
+        break;
+      }
+      case "TOGGLE_UNREAD": {
+        this.willShowUnread = action.yes;
+        this.emit('toggleUnread');
         break;
       }
     }

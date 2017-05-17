@@ -27,10 +27,12 @@ export function getContacts() {
   });
 }
 
-export function getMessages(id) {
+export function getMessages(id, from, noOfMsg) {
   dispatcher.dispatch({
     type: "GET_MESSAGES",
     id,
+    from,
+    noOfMsg
   });
 }
 
@@ -39,5 +41,12 @@ export function postMessage(id, msg) {
     type: "POST_MESSAGE",
     id,
     msg,
+  });
+}
+
+export function willShowUnread(yes) {
+  dispatcher.dispatch({
+    type: "TOGGLE_UNREAD",
+    yes
   });
 }
