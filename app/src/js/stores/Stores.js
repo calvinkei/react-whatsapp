@@ -27,30 +27,35 @@ class Stores extends EventEmitter {
     fetch(`${this.apiRoute}user/${username}`).then((response) => {
       return response.json();
     }).then((json) => {
-      window.localStorage['user'] = JSON.stringify(json[0]);
-      this.user = json[0];
-      this.socket = io(`${this.socketIoRoute}${json[0].id}`);
-      this.socket.on('newMsg', (data) => {
-        this.newMsg = data;
-        const conversations = this.conversations.slice();
-        for (let i = 0; i < conversations.length; i++){
-          if (conversations[i].id == data.conversation){
-            conversations[i].unread++;
-            if (conversations[i].unread == 1){
-              this.unreadConversations++;
+      if(json[0]){
+        window.localStorage['user'] = JSON.stringify(json[0]);
+        this.user = json[0];
+        this.socket = io(`${this.socketIoRoute}${json[0].id}`);
+        this.socket.on('newMsg', (data) => {
+          this.newMsg = data;
+          const conversations = this.conversations.slice();
+          for (let i = 0; i < conversations.length; i++){
+            if (conversations[i].id == data.conversation){
+              conversations[i].unread++;
+              if (conversations[i].unread == 1){
+                this.unreadConversations++;
+              }
+              conversations[i].send_time = data.send_time;
+              conversations[i].content = data.content;
             }
-            conversations[i].send_time = data.send_time;
-            conversations[i].content = data.content;
           }
-        }
-        this.conversations = conversations.sort((a, b) => {return new Date(b.send_time) - new Date(a.send_time)});
-        this.emit("newMsg");
-      });
-      this.socket.on('read', (data) => {
-        this.readMessages = data;
-        this.emit("msgRead");
-      });
-      this.emit("loginSuccess");
+          this.conversations = conversations.sort((a, b) => {return new Date(b.send_time) - new Date(a.send_time)});
+          this.emit("newMsg");
+        });
+        this.socket.on('read', (data) => {
+          this.readMessages = data;
+          this.emit("msgRead");
+        });
+        this.emit("loginSuccess");
+      }else{
+        this.errorMsg = `User doesn't exist`;
+        this.emit("loginFail");
+      }
     })
   }
 

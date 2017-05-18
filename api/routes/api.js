@@ -90,7 +90,7 @@ router.post('/messages/:conversation', function(req, res, next) {
   'INSERT INTO messages (conversation, sender, content, status) VALUES (?, ?, ?, ?); ' +
   'SELECT * FROM messages WHERE id = LAST_INSERT_ID(); UPDATE conversations SET last_msg = LAST_INSERT_ID(), user_a_unread = CASE user_a WHEN ?' +
   ' THEN user_a_unread ELSE user_a_unread + 1 END, user_b_unread = CASE user_a WHEN ?' +
-  ' THEN user_b_unread + 1 ELSE user_b_unread END WHERE id = ?', 
+  ' THEN user_b_unread + 1 ELSE user_b_unread END WHERE id = ?',
   [req.body.sender, req.params.conversation, req.params.conversation, req.body.sender, req.body.content, req.body.status, req.body.sender, req.body.sender, req.params.conversation], function (error, results, fields){
     if(error){
       res.send(error);
