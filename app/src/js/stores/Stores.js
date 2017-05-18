@@ -30,7 +30,7 @@ class Stores extends EventEmitter {
       if(json[0]){
         window.localStorage['user'] = JSON.stringify(json[0]);
         this.user = json[0];
-        this.socket = io(`${this.socketIoRoute}${json[0].id}`);
+        this.socket = io.connect(`${this.socketIoRoute}${json[0].id}`, {'multiplex': false});
         this.socket.on('newMsg', (data) => {
           this.newMsg = data;
           const conversations = this.conversations.slice();
